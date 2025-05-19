@@ -21,7 +21,6 @@ class LoginCubit extends Cubit<LoginState> {
   }) async {
     emit(LoginLoading());
     try {
-      // First sign in
       final user = await SupabaseService().signInWithName(
         name: userName,
         password: password,

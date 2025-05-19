@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import 'package:rifqa/cores/utils/app_styles.dart';
 import 'package:rifqa/cores/widgets/custom_button_widget.dart';
 import 'package:rifqa/cores/widgets/custom_snack_bar.dart';
 import 'package:rifqa/cores/widgets/custom_text_field_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BodyEditingViewWidget extends StatefulWidget {
   final CategoryItemModel categoryItemModel;
@@ -46,6 +48,21 @@ class _BodyEditingViewWidgetState extends State<BodyEditingViewWidget> {
     activityInputController = TextEditingController();
     activitiesList = List.from(widget.categoryItemModel.activities);
     currentImageUrl = widget.categoryItemModel.imageUrl;
+  }
+
+  Future<bool> _checkIfNameExists(String name) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('category_item')
+          .select()
+          .eq('name', name)
+          .eq('type', widget.categoryItemModel.type);
+
+      return response.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+      throw Exception('Failed to check name existence: $e');
+    }
   }
 
   @override
@@ -153,6 +170,19 @@ class _BodyEditingViewWidgetState extends State<BodyEditingViewWidget> {
                 CustomButtonWidget(
                   onTap: () async {
                     if (formKey.currentState!.validate()) {
+                      try {
+                        final nameExists = await _checkIfNameExists(
+                            nameController.text.trim());
+                        if (nameExists) {
+                          CustomSnackBar.showSnackBar(
+                              Colors.red, "المنطقة موجوده بالفعل", context);
+                          return;
+                        }
+                      } catch (e) {
+                        CustomSnackBar.showSnackBar(
+                            Colors.red, "حدث خطأ في التحقق من الاسم", context);
+                        return;
+                      }
                       await BlocProvider.of<EditingCategoryItemCubit>(context)
                           .updateCategoryItem(
                         categoryItem: widget.categoryItemModel,
