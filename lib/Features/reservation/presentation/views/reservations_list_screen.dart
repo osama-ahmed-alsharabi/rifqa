@@ -4,6 +4,7 @@ import 'package:rifqa/Features/reservation/data/models/reservation_model.dart';
 import 'package:rifqa/Features/reservation/presentation/view_model/reservation_cubit/reservation_cubit_cubit.dart';
 import 'package:rifqa/Features/reservation/presentation/view_model/reservation_cubit/reservation_cubit_state.dart';
 import 'package:rifqa/cores/cubit/theme_app_cubit.dart';
+import 'package:rifqa/cores/utils/app_styles.dart';
 
 class ReservationsListScreen extends StatefulWidget {
   final bool isAdmin;
@@ -215,6 +216,10 @@ class ReservationCard extends StatelessWidget {
                       ),
                   ],
                 ),
+              RatingCommentWidget(
+                reservation: reservation,
+                isAdmin: isAdmin,
+              ),
             ],
           ),
         ),
@@ -272,5 +277,156 @@ class ReservationCard extends StatelessWidget {
       default:
         return Colors.grey;
     }
+  }
+}
+
+class RatingCommentWidget extends StatelessWidget {
+  final ReservationModel reservation;
+  final bool isAdmin;
+
+  const RatingCommentWidget({
+    super.key,
+    required this.reservation,
+    required this.isAdmin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (reservation.status != 'confirmed') return const SizedBox();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(),
+        if (reservation.rating != null) _buildRatingStars(reservation.rating!),
+        if (reservation.comment != null && reservation.comment!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'التعليق: ${reservation.comment}',
+              style: TextStyle(
+                color: BlocProvider.of<ThemeAppCubit>(context).kprimayColor,
+              ),
+            ),
+          ),
+        if (!isAdmin && reservation.rating == null)
+          TextButton(
+            onPressed: () => _showRatingBottomSheet(context, reservation.id),
+            child: Text(
+              'تقييم الحجز',
+              style: TextStyle(
+                color: BlocProvider.of<ThemeAppCubit>(context).kprimayColor,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildRatingStars(int rating) {
+    return Row(
+      children: List.generate(5, (index) {
+        return Icon(
+          index < rating ? Icons.star : Icons.star_border,
+          color: Colors.amber,
+        );
+      }),
+    );
+  }
+
+  void _showRatingBottomSheet(BuildContext context, String reservationId) {
+    int rating = 0;
+    final commentController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'كيف تقيم تجربتك؟',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              StatefulBuilder(
+                builder: (context, setState) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          size: 40,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            rating = index + 1;
+                          });
+                        },
+                      );
+                    }),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              Directionality(
+                textDirection: TextDirection.rtl,
+                child: TextField(
+                  controller: commentController,
+                  cursorColor: Colors.white,
+                  decoration: InputDecoration(
+                    labelText: 'تعليقك (اختياري)',
+                    labelStyle:
+                        AppStyles.styleText12.copyWith(color: Colors.white),
+                    border: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.white,
+                    )),
+                    focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.white,
+                    )),
+                  ),
+                  maxLines: 3,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      BlocProvider.of<ThemeAppCubit>(context).kprimayColor,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: () {
+                  if (rating > 0) {
+                    context.read<ReservationCubit>().addRatingAndComment(
+                          reservationId,
+                          rating,
+                          commentController.text,
+                        );
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text(
+                  'إرسال التقييم',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

@@ -46,6 +46,17 @@ class ReservationCubit extends Cubit<ReservationState> {
     }
   }
 
+  Future<void> addRatingAndComment(
+      String reservationId, int rating, String comment) async {
+    emit(ReservationLoading());
+    try {
+      await reservationRepo.addRatingAndComment(reservationId, rating, comment);
+      emit(ReservationStatusUpdated());
+    } catch (e) {
+      emit(ReservationError(e.toString()));
+    }
+  }
+
   Future<void> getUserReservations() async {
     emit(ReservationsLoading());
     try {

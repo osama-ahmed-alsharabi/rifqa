@@ -13,22 +13,27 @@ class ReservationModel {
   final String? userPhone;
   final String? userSecondPhone;
   final String? userNationality;
+  final int? rating;
+  final String? comment;
 
-  ReservationModel(
-      {required this.id,
-      required this.userId,
-      required this.hotelId,
-      required this.hotelName,
-      required this.hotelAddress,
-      required this.reservationType,
-      required this.numberOfClients,
-      required this.durationDays,
-      required this.reservationDate,
-      this.status = 'pending',
-      this.userName,
-      this.userPhone,
-      this.userSecondPhone,
-      this.userNationality});
+  ReservationModel({
+    required this.id,
+    required this.userId,
+    required this.hotelId,
+    required this.hotelName,
+    required this.hotelAddress,
+    required this.reservationType,
+    required this.numberOfClients,
+    required this.durationDays,
+    required this.reservationDate,
+    this.status = 'pending',
+    this.userName,
+    this.userPhone,
+    this.userSecondPhone,
+    this.userNationality,
+    this.rating,
+    this.comment,
+  });
 
   factory ReservationModel.fromJson(Map<String, dynamic> json) {
     return ReservationModel(
@@ -42,6 +47,8 @@ class ReservationModel {
       durationDays: json['duration_days'] as int,
       reservationDate: DateTime.parse(json['reservation_date'] as String),
       status: json['status'] as String? ?? 'pending',
+      rating: json['rating'] as int?,
+      comment: json['comment'] as String?,
     );
   }
 
@@ -62,6 +69,8 @@ class ReservationModel {
       userPhone: userData?['phone_number'] as String?,
       userSecondPhone: userData?["seconday_phone_number"] as String?,
       userNationality: userData?["nationality"] as String?,
+      rating: json['rating'] as int?,
+      comment: json['comment'] as String?,
     );
   }
   Map<String, dynamic> toJson() {
@@ -78,6 +87,8 @@ class ReservationModel {
       'status': status,
       if (userName != null) 'user_name': userName,
       if (userPhone != null) 'user_phone': userPhone,
+      if (rating != null) 'rating': rating,
+      if (comment != null) 'comment': comment,
     };
   }
 }

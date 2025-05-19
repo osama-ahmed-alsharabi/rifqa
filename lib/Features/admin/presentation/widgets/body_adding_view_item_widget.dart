@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:rifqa/cores/utils/app_styles.dart';
 import 'package:rifqa/cores/widgets/custom_button_widget.dart';
 import 'package:rifqa/cores/widgets/custom_snack_bar.dart';
 import 'package:rifqa/cores/widgets/custom_text_field_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BodyAddingViewItemWidget extends StatefulWidget {
   final CategoryModel categoryModel;
@@ -32,6 +34,21 @@ class _BodyAddingViewItemWidgetState extends State<BodyAddingViewItemWidget> {
   final TextEditingController activityInputController = TextEditingController();
   List<String> activitiesList = [];
   File? image;
+
+  Future<bool> _checkIfNameExists(String name) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('category_item')
+          .select()
+          .eq('name', name)
+          .eq('type', widget.categoryModel.title);
+
+      return response.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+      throw Exception('Failed to check name existence: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,31 +148,51 @@ class _BodyAddingViewItemWidgetState extends State<BodyAddingViewItemWidget> {
                 ),
                 CustomButtonWidget(
                     onTap: () async {
-                      String imageUrl = "";
                       if (formKey.currentState!.validate()) {
                         if (image == null) {
                           CustomSnackBar.showSnackBar(
                               Colors.red, "الرجاء إضافة صورة", context);
                           return;
                         }
+
+                        // Check if name exists
+                        try {
+                          final nameExists = await _checkIfNameExists(
+                              nameController.text.trim());
+                          if (nameExists) {
+                            CustomSnackBar.showSnackBar(
+                                Colors.red, "المنطقة موجوده بالفعل", context);
+                            return;
+                          }
+                        } catch (e) {
+                          CustomSnackBar.showSnackBar(Colors.red,
+                              "حدث خطأ في التحقق من الاسم", context);
+                          return;
+                        }
+
+                        // Proceed with upload if name doesn't exist
+                        String imageUrl = "";
                         try {
                           imageUrl =
                               await CategoryService().uploadImage(image!);
+
+                          await BlocProvider.of<AddingCategoryItemDataCubit>(
+                                  context)
+                              .addingCategory(
+                            name: nameController.text.trim(),
+                            description: descriptionController.text
+                                .trim(), // Fixed: was using nameController twice
+                            type: widget.categoryModel.title,
+                            imageUrl: imageUrl,
+                            activities: activitiesList,
+                          );
                         } catch (e) {
                           CustomSnackBar.showSnackBar(Colors.red,
                               "حدث خظاء \n تأكد من الاتصال بالانترنت", context);
                         }
-                        await BlocProvider.of<AddingCategoryItemDataCubit>(
-                                context)
-                            .addingCategory(
-                          name: nameController.text.trim(),
-                          description: nameController.text.trim(),
-                          type: widget.categoryModel.title,
-                          imageUrl: imageUrl,
-                          activities: activitiesList,
-                        );
                       } else {
                         autovalidateMode = AutovalidateMode.always;
+                        setState(() {});
                       }
                     },
                     widget: state is AddingCategoryItemDataLoading

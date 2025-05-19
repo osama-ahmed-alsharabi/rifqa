@@ -77,4 +77,13 @@ class ReservationRepoImpl implements ReservationRepo {
         .from('reservations')
         .update({'status': status}).eq('id', id);
   }
+
+  @override
+  Future<void> addRatingAndComment(
+      String reservationId, int rating, String comment) async {
+    await supabaseClient.from('reservations').update({
+      'rating': rating,
+      'comment': comment,
+    }).eq('id', reservationId);
+  }
 }

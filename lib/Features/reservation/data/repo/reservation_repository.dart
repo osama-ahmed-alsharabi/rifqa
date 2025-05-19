@@ -5,4 +5,6 @@ abstract class ReservationRepo {
   Future<List<ReservationModel>> getUserReservations(String userId);
   Future<List<ReservationModel>> getAllReservations();
   Future<void> updateReservationStatus(String id, String status);
+  Future<void> addRatingAndComment(
+      String reservationId, int rating, String comment);
 }

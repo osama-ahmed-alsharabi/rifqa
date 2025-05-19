@@ -95,8 +95,6 @@ class _ReservationScreenState extends State<ReservationScreen> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
-
-                          // Reservation Type Dropdown
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
@@ -131,7 +129,6 @@ class _ReservationScreenState extends State<ReservationScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -168,7 +165,6 @@ class _ReservationScreenState extends State<ReservationScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -205,7 +201,6 @@ class _ReservationScreenState extends State<ReservationScreen> {
                             ],
                           ),
                           const Spacer(),
-
                           if (!widget.isAdmin)
                             CustomButtonWidget(
                               widget: state is ReservationLoading
