@@ -27,13 +27,19 @@ class _ReservationScreenState extends State<ReservationScreen> {
   int _numberOfClients = 1;
   int _durationDays = 1;
 
-  final List<String> _reservationTypes = [
-    'غرفة فردية',
-    'غرفة مزدوجة',
-    'جناح',
-    'جناح فاخر',
-    'شقة فندقية'
-  ];
+  // Map of reservation types with their base prices
+  final Map<String, double> _reservationTypes = {
+    'غرفة فردية': 100.0,
+    'غرفة مزدوجة': 150.0,
+    'جناح': 250.0,
+    'جناح فاخر': 400.0,
+    'شقة فندقية': 300.0,
+  };
+
+  // Current price calculations
+  double get _pricePerNight => _selectedReservationType != null
+      ? _reservationTypes[_selectedReservationType]!
+      : 0.0;
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +101,8 @@ class _ReservationScreenState extends State<ReservationScreen> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
+
+                          // Reservation type selector
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
@@ -109,7 +117,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                               ),
                               isExpanded: true,
                               underline: const SizedBox(),
-                              items: _reservationTypes.map((String value) {
+                              items: _reservationTypes.keys.map((String value) {
                                 return DropdownMenuItem<String>(
                                   alignment: Alignment.center,
                                   value: value,
@@ -128,7 +136,24 @@ class _ReservationScreenState extends State<ReservationScreen> {
                               },
                             ),
                           ),
+
+                          // Price display - Outside the dropdown menu
+                          if (_selectedReservationType != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                'السعر: $_pricePerNight ر.س لكل ليلة',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+
                           const SizedBox(height: 16),
+
+                          // Number of clients selector
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -165,6 +190,8 @@ class _ReservationScreenState extends State<ReservationScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
+
+                          // Duration selector
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -200,7 +227,10 @@ class _ReservationScreenState extends State<ReservationScreen> {
                               ),
                             ],
                           ),
+
                           const Spacer(),
+
+                          // Confirm reservation button
                           if (!widget.isAdmin)
                             CustomButtonWidget(
                               widget: state is ReservationLoading
@@ -236,6 +266,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                                           _selectedReservationType!,
                                       numberOfClients: _numberOfClients,
                                       durationDays: _durationDays,
+                                      // totalPrice: _pricePerNight * _durationDays,
                                     );
                               },
                             ),

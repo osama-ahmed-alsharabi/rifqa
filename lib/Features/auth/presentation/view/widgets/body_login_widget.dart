@@ -13,6 +13,7 @@ import 'package:rifqa/cores/utils/app_styles.dart';
 import 'package:rifqa/cores/widgets/custom_button_widget.dart';
 import 'package:rifqa/cores/widgets/custom_snack_bar.dart';
 import 'package:rifqa/cores/widgets/custom_text_field_widget.dart';
+import 'package:rifqa/hotels_dashboard.dart';
 
 class BodyLoginWidget extends StatefulWidget {
   const BodyLoginWidget({
@@ -145,15 +146,24 @@ class _BodyLoginWidgetState extends State<BodyLoginWidget> {
                 CustomButtonWidget(
                   onTap: () async {
                     if (formkey.currentState!.validate()) {
-                      if (password.text == "admin" &&
-                          userName.text == "admin") {
-                        Navigator.pushReplacementNamed(
-                            context, AppRouter.kMainRoute,
-                            arguments: true);
+                      if (password.text != "hotel" &&
+                          userName.text != "hotel") {
+                        if (password.text == "admin" &&
+                            userName.text == "admin") {
+                          Navigator.pushReplacementNamed(
+                              context, AppRouter.kMainRoute,
+                              arguments: true);
+                        } else {
+                          await BlocProvider.of<LoginCubit>(context).login(
+                              userName: userName.text.trim(),
+                              password: password.text.trim());
+                        }
                       } else {
-                        await BlocProvider.of<LoginCubit>(context).login(
-                            userName: userName.text.trim(),
-                            password: password.text.trim());
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const HotelDashboardApp()));
                       }
                       BlocProvider.of<ProfileCubit>(context).getUserName();
                     } else {

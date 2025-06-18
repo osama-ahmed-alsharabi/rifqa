@@ -29,6 +29,10 @@ class AiChatCubit extends Cubit<AiChatState> {
       _model = GenerativeModel(
         model: 'gemini-1.5-flash',
         apiKey: "AIzaSyABFrlnMHPpt2e94WWFqhfyM0K6FVl_QqI",
+        // يمكن لاحقًا استخدام systemInstruction لو دعمت رسمياً
+        // systemInstruction: Content.text(
+        //   "أنت مساعد سياحي ذكي. أجب فقط على الأسئلة المتعلقة بالسفر والسياحة والمناطق السياحية والمطاعم والفنادق والأنشطة السياحية. تجاهل أي أسئلة خارج هذا السياق."
+        // ),
       );
     } catch (e) {
       emit(AiChatError(
@@ -46,11 +50,15 @@ class AiChatCubit extends Cubit<AiChatState> {
     if (_currentLocation != userLocation || _chat == null) {
       _currentLocation = userLocation;
       _messages.clear();
-      _chat = _model?.startChat();
+      _chat = _model?.startChat(history: [
+        Content.text(
+          "أنت مساعد سياحي محترف، وظيفتك هي الرد فقط على الأسئلة المتعلقة بالسفر، السياحة، الفنادق، الأماكن السياحية، والمطاعم. لا تجب على أي أسئلة لا علاقة لها بالسياحة. المستخدم موجود في $userLocation.",
+        ),
+      ]);
 
       _messages.add(ChatMessage(
         text:
-            "مرحباً بك في $userLocation! أنا مساعدك السياحي. من فضلك تحدث معي باللغة العربية وسأرد عليك بنفس اللغة. كيف يمكنني مساعدتك اليوم؟",
+            "مرحباً بك في $userLocation! أنا مساعدك السياحي. من فضلك تحدث معي باللغة العربية وسأرد عليك بنفس اللغة. تذكر أنني أجيب فقط على الأسئلة المتعلقة بالسياحة.",
         isUser: false,
         timestamp: DateTime.now(),
       ));
@@ -117,7 +125,7 @@ class AiChatCubit extends Cubit<AiChatState> {
         onError: (e) {
           _messages.remove(typingMessage);
           emit(AiChatError(
-            message: "Error sending message",
+            message: "حدث خطأ أثناء إرسال الرسالة",
             errorDetails: e.toString(),
             previousState: AiChatLoaded(
               messages: List.from(_messages),
@@ -129,7 +137,7 @@ class AiChatCubit extends Cubit<AiChatState> {
     } catch (e) {
       _messages.remove(typingMessage);
       emit(AiChatError(
-        message: "Exception occurred",
+        message: "حدث استثناء غير متوقع",
         errorDetails: e.toString(),
         previousState: AiChatLoaded(
           messages: List.from(_messages),
